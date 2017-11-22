@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 				       " -v          increase verbosity/debugging\n"
 				       " -L N        set idle low threshold to integer N [20]\n"
 				       " -H N        set idle high threshold to integer N [100]\n"
-				       " -delay N    set cpu disable delay to ineteger N\n"
+				       " -delay N    set cpu disable delay to integer N [30]\n"
 					);
 				exit(0);
 			}
@@ -222,8 +222,8 @@ int main(int argc, char **argv)
 	if(conf.low > conf.high) conf.low = conf.high;
 
 	if(conf.daemon) {
-		daemonize();
 		conf.debug = 0;
+		daemonize();
 	}
 
 
