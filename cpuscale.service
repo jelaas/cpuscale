@@ -2,6 +2,8 @@
 Description=cpu auto scaling
 
 [Service]
+Restart=on-failure
+RestartSec=30
 ExecStart=/usr/bin/cpuscale
 
 [Install]
