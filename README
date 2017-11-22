@@ -6,4 +6,9 @@ cpuscale [-D] [-v] [-L N] [-H N] [-delay N]
  -v          increase verbosity/debugging
  -L N        set idle low threshold to integer N [20]
  -H N        set idle high threshold to integer N [100]
- -delay N    set cpu disable delay to ineteger N
+ -delay N    set cpu disable delay to integer N [30]
+
+-delay is in seconds.
+Thresholds are base idle percentages.
+Number of online CPUs will be taken into account when making decisions.
+Percentages are calculated using stats read every second from /proc/stat.
