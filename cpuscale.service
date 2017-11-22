@@ -1,0 +1,8 @@
+[Unit]
+Description=cpu auto scaling
+
+[Service]
+ExecStart=/usr/bin/cpuscale
+
+[Install]
+WantedBy=multi-user.target
