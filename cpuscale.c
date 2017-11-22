@@ -140,7 +140,10 @@ int subv(uint64_t *v1, const uint64_t *v2)
 {
 	int i;
 	for(i=0;i<NSTAT;i++) {
-		v1[i] = v1[i] - v2[i];
+		if(v2[i] <= v1[i])
+			v1[i] = v1[i] - v2[i];
+		else
+			v1[i] = 0;
 	}
 	return 0;
 }
@@ -155,7 +158,7 @@ int copyv(uint64_t *v1, const uint64_t *v2)
 uint64_t sumv(uint64_t *v)
 {
 	int i;
-	uint64_t sum = 0;
+	uint64_t sum = 1;
 	for(i=0;i<NSTAT;i++) {
 		sum += v[i];
 	}
