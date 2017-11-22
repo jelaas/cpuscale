@@ -1,0 +1,9 @@
+CPU autoscaler for virtual guests.
+Enables and disables CPUs depending on CPU idle percentage.
+
+cpuscale [-D] [-v] [-L N] [-H N] [-delay N]
+ -D          daemonize, disabled -v
+ -v          increase verbosity/debugging
+ -L N        set idle low threshold to integer N [20]
+ -H N        set idle high threshold to integer N [100]
+ -delay N    set cpu disable delay to ineteger N
