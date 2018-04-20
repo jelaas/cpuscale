@@ -236,14 +236,16 @@ int main(int argc, char **argv)
 		daemonize();
 	}
 
-
 	var.sleeptime = 1;
 	var.cpus = cpus_online();
 	if(var.cpus < 1) var.cpus = 1;
 
 	if(conf.loadtest) {
 		int fd;
-		char buf[1];
+		unsigned char buf[1];
+		
+		conf.delay = 0;
+		
 		fd = open("/dev/urandom", O_RDONLY);
 		if(fd == -1) {
 			fprintf(stderr, "Failed to open /dev/urandom\n");
