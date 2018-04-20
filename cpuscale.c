@@ -24,6 +24,8 @@ struct {
 	int delay;
 	int low,high;
 	int daemon;
+	int mincpu;
+	int loadtest;
 } conf;
 
 struct {
@@ -52,7 +54,7 @@ int cpus_online()
 	return cpus;
 }
 
-int cmd_cpu(char match, char output)
+int cmd_cpu(int start, char match, char output)
 {
 	int fd, i=0;
 	ssize_t n;
@@ -60,7 +62,7 @@ int cmd_cpu(char match, char output)
 	
 	cmd[0] = output;
 	
-	for(i=1;;i++) {
+	for(i=start;;i++) {
 		snprintf(fn, sizeof(fn), "/sys/devices/system/cpu/cpu%d/online", i);
 		fd = open(fn, O_RDONLY);
 		if(fd == -1) return -1;
@@ -89,7 +91,7 @@ int enable_cpu()
 	
 	var.disabledelay = 0;
 	if(conf.debug) 	printf("enabling CPU\n");
-	rc = cmd_cpu('0', '1');
+	rc = cmd_cpu(1, '0', '1');
 	if(!rc) var.cpus++;
 	return rc;
 }
@@ -101,7 +103,7 @@ int disable_cpu()
 		int rc;
 		if(conf.debug) 	printf("disabling CPU\n");
 		var.disabledelay = 0;
-		rc = cmd_cpu('1', '0');
+		rc = cmd_cpu(conf.mincpu, '1', '0');
 		if(!rc) var.cpus--;
 		return rc;
 	}
@@ -197,6 +199,7 @@ int main(int argc, char **argv)
 	conf.debug = 0;
 	conf.low = 20;
 	conf.high = 100;
+	conf.mincpu = 1;
 
 	{
 		int i;
@@ -206,6 +209,8 @@ int main(int argc, char **argv)
 			if(!strcmp(argv[i], "-L")) conf.low = atoi(argv[i+1]);
 			if(!strcmp(argv[i], "-H")) conf.high = atoi(argv[i+1]);
 			if(!strcmp(argv[i], "-delay")) conf.delay = atoi(argv[i+1]);
+			if(!strcmp(argv[i], "-loadtest")) conf.loadtest = 1;
+			if(!strcmp(argv[i], "-mincpu")) conf.mincpu = atoi(argv[i+1]);
 			if(!strcmp(argv[i], "-h")) {
 				printf("cpuscale [-D] [-v] [-L N] [-H N] [-delay N]\n"
 				       " -D          daemonize, disabled -v\n"
@@ -213,6 +218,7 @@ int main(int argc, char **argv)
 				       " -L N        set idle low threshold to integer N [20]\n"
 				       " -H N        set idle high threshold to integer N [100]\n"
 				       " -delay N    set cpu disable delay to integer N [30]\n"
+				       " -mincpu N   set minimum number enabled cpus to N [1]\n"
 					);
 				exit(0);
 			}
@@ -223,6 +229,7 @@ int main(int argc, char **argv)
 	if(conf.low < 1) conf.low = 1;
 	if(conf.high < 1) conf.high = 50;
 	if(conf.low > conf.high) conf.low = conf.high;
+	if(conf.mincpu < 1) conf.mincpu = 1;
 
 	if(conf.daemon) {
 		conf.debug = 0;
@@ -233,6 +240,27 @@ int main(int argc, char **argv)
 	var.sleeptime = 1;
 	var.cpus = cpus_online();
 	if(var.cpus < 1) var.cpus = 1;
+
+	if(conf.loadtest) {
+		int fd;
+		char buf[1];
+		fd = open("/dev/urandom", O_RDONLY);
+		if(fd == -1) {
+			fprintf(stderr, "Failed to open /dev/urandom\n");
+			exit(1);
+		}
+		while(1) {
+			if(read(fd, buf, 1)!= 1) sleep(1);
+			if(buf[0] & 0x1) enable_cpu(); else disable_cpu(); buf[0] >>= 1;
+			if(buf[0] & 0x1) enable_cpu(); else disable_cpu(); buf[0] >>= 1;
+			if(buf[0] & 0x1) enable_cpu(); else disable_cpu(); buf[0] >>= 1;
+			if(buf[0] & 0x1) enable_cpu(); else disable_cpu(); buf[0] >>= 1;
+			if(buf[0] & 0x1) enable_cpu(); else disable_cpu(); buf[0] >>= 1;
+			if(buf[0] & 0x1) enable_cpu(); else disable_cpu(); buf[0] >>= 1;
+			if(buf[0] & 0x1) enable_cpu(); else disable_cpu(); buf[0] >>= 1;
+			if(buf[0] & 0x1) enable_cpu(); else disable_cpu(); buf[0] >>= 1;
+		}
+	}
 
 	c(v);
 	while(1) {
